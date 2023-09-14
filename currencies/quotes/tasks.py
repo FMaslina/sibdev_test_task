@@ -1,3 +1,4 @@
+from datetime import datetime
 import requests
 from celery import shared_task
 from quotes.models import CurrencyModel, QuoteModel
@@ -13,5 +14,5 @@ def get_quotes():
             currency_obj = CurrencyModel.objects.create(currency_name=currency['CharCode'])
         else:
             currency_obj = currency_obj.first()
-        QuoteModel.objects.create(currency=currency_obj, quote=currency['Value'])
+        QuoteModel.objects.create(currency=currency_obj, quote=currency['Value'], date=datetime.now)
     return data
