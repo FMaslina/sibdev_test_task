@@ -12,6 +12,7 @@ class CurrencyModel(models.Model):
 class QuoteModel(models.Model):
     currency = models.ForeignKey(CurrencyModel, on_delete=models.CASCADE, verbose_name='Валюта')
     quote = models.FloatField(verbose_name='Котировка')
+    date = models.DateField(verbose_name="Дата")
 
 
 class CurrencyUserModel(models.Model):
