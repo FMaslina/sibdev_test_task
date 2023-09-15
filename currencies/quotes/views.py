@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 import requests
+from django.db.models import Max, Min
 from rest_framework import status
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
@@ -83,3 +84,46 @@ class GetLastQuotes(APIView):
             result = QuoteModelSerializer(last_quotes, many=True).data
 
         return Response(status=status.HTTP_200_OK, data=result)
+
+
+class AnalyticsCurrency(APIView):
+    def get(self, request, pk):
+        limit_value = int(request.query_params.get('threshold'))
+        date_from = request.query_params.get('date_from')
+        date_from_dt = datetime.strptime(date_from, '%Y-%m-%d')
+        date_to = request.query_params.get('date_to')
+        date_to_dt = datetime.strptime(date_to, '%Y-%m-%d')
+        data = []
+
+        currency = CurrencyModel.objects.get(pk=pk)
+        currency_quotes = QuoteModel.objects.filter(date__in=[date_from_dt, date_to_dt], currency=currency)
+
+        for quote in currency_quotes:
+            if quote.quote > limit_value:
+                exceeding_threshold = 'Превышено пороговое значение'
+            elif quote.quote == limit_value:
+                exceeding_threshold = 'Котировка равна пороговому значению'
+            else:
+                exceeding_threshold = 'Котировека меньше порогового значения'
+
+            is_max = False
+            is_min = False
+
+            if quote.quote == currency_quotes.aggregate(Max('quote')):
+                is_max = True
+            if quote.quote == currency_quotes.aggregate(Min('quote')):
+                is_min = True
+
+            percentage = quote.quote / limit_value * 100
+
+            data.append({
+                "currency": currency.currency_name,
+                "quote": quote.quote,
+                "date": quote.date,
+                "exceeding_threshold": exceeding_threshold,
+                "is_max": is_max,
+                "is_min": is_min,
+                "percentage": percentage
+            })
+
+        return Response(status=status.HTTP_200_OK, data=data)
