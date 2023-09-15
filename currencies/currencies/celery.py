@@ -11,6 +11,10 @@ app.autodiscover_tasks()
 app.conf.beat_schedule = {
     'get_daily_quotes': {
         'task': 'quotes.tasks.get_quotes',
-        'schedule': crontab(hour='17', minute='27')
+        'schedule': crontab(hour='12', minute='0')
     },
+    'check_limits': {
+        'task': 'quotes.tasks.check_limits',
+        'schedule': crontab(hour='12', minute='5')
+    }
 }
