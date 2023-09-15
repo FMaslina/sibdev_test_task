@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from quotes.models import CurrencyModel, QuoteModel, CurrencyUserModel
+from quotes.serializers import QuoteModelSerializer
 
 
 # Create your views here.
@@ -63,3 +64,22 @@ class AddCurrencyToTracked(APIView):
                 return Response(status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
+class GetLastQuotes(APIView):
+    def get(self, request):
+        user = request.user
+        print(user)
+        last_quotes_date = QuoteModel.objects.all().last().date
+        last_quotes = QuoteModel.objects.filter(date=last_quotes_date)
+        result = []
+        if user.is_authenticated:
+            user_tracked_currencies = CurrencyUserModel.objects.filter(user=user)
+
+            for currency in user_tracked_currencies:
+                quote = last_quotes.filter(currency=currency.currency).first()
+                result.append(QuoteModelSerializer(quote).data)
+        else:
+            result = QuoteModelSerializer(last_quotes, many=True).data
+
+        return Response(status=status.HTTP_200_OK, data=result)
