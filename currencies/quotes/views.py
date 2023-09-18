@@ -96,7 +96,10 @@ class GetLastQuotes(APIView):
 
 class AnalyticsCurrency(APIView):
     def get(self, request, pk):
-        limit_value = int(request.query_params.get('threshold'))
+        try:
+            limit_value = float(request.query_params.get('threshold'))
+        except ValueError:
+            return Response(data={"Error": "Неверное значение порогового значения"}, status=status.HTTP_400_BAD_REQUEST)
         date_from = request.query_params.get('date_from')
         date_from_dt = datetime.strptime(date_from, '%Y-%m-%d')
         date_to = request.query_params.get('date_to')
@@ -104,7 +107,7 @@ class AnalyticsCurrency(APIView):
         data = []
 
         currency = CurrencyModel.objects.get(pk=pk)
-        currency_quotes = QuoteModel.objects.filter(date__in=[date_from_dt, date_to_dt], currency=currency)
+        currency_quotes = QuoteModel.objects.filter(date__range=[date_from_dt, date_to_dt], currency=currency)
 
         for quote in currency_quotes:
             if quote.quote > limit_value:
