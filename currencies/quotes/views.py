@@ -70,7 +70,6 @@ class AddCurrencyToTracked(APIView):
 class GetLastQuotes(APIView):
     def get(self, request):
         user = request.user
-        print(user)
         last_quotes_date = QuoteModel.objects.all().last().date
         last_quotes = QuoteModel.objects.filter(date=last_quotes_date)
         result = []
