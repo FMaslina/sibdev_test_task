@@ -70,8 +70,14 @@ class AddCurrencyToTracked(APIView):
 class GetLastQuotes(APIView):
     def get(self, request):
         user = request.user
+        ordering = self.request.query_params.get('ordering')
         last_quotes_date = QuoteModel.objects.all().last().date
-        last_quotes = QuoteModel.objects.filter(date=last_quotes_date)
+        if ordering == 'asc':
+            last_quotes = QuoteModel.objects.filter(date=last_quotes_date).order_by('quote')
+        elif ordering == 'desc':
+            last_quotes = QuoteModel.objects.filter(date=last_quotes_date).order_by('-quote')
+        else:
+            last_quotes = QuoteModel.objects.filter(date=last_quotes_date)
         result = []
         if user.is_authenticated:
             user_tracked_currencies = CurrencyUserModel.objects.filter(user=user)
