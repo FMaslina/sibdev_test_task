@@ -1,11 +1,12 @@
 from datetime import datetime, timedelta
 import requests
 from django.db.models import Max, Min
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 from rest_framework import status
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-
 from quotes.models import CurrencyModel, QuoteModel, CurrencyUserModel
 from quotes.serializers import QuoteModelSerializer
 
@@ -68,6 +69,8 @@ class AddCurrencyToTracked(APIView):
 
 
 class GetLastQuotes(APIView):
+
+    @method_decorator(cache_page(60*15))
     def get(self, request):
         user = request.user
         ordering = self.request.query_params.get('ordering')
